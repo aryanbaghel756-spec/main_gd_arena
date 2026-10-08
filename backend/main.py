@@ -108,12 +108,16 @@ frontend_dist_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."
 # Mount Next.js static assets (_next)
 if os.path.exists(os.path.join(frontend_out_dir, "_next")):
     app.mount("/_next", StaticFiles(directory=os.path.join(frontend_out_dir, "_next")), name="nextjs-assets")
+    app.mount("/main_gd_arena/_next", StaticFiles(directory=os.path.join(frontend_out_dir, "_next")), name="nextjs-assets-prefix")
 
 # Mount Vite static assets (assets) if present
 if os.path.exists(os.path.join(frontend_dist_dir, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_dir, "assets")), name="frontend-assets")
+    app.mount("/main_gd_arena/assets", StaticFiles(directory=os.path.join(frontend_dist_dir, "assets")), name="frontend-assets-prefix")
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/main_gd_arena", response_class=HTMLResponse)
+@app.get("/main_gd_arena/", response_class=HTMLResponse)
 async def serve_index():
     out_index = os.path.join(frontend_out_dir, "index.html")
     if os.path.exists(out_index):

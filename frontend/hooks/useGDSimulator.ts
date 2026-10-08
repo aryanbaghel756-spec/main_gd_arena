@@ -222,11 +222,90 @@ export function useGDSimulator() {
     window.speechSynthesis.speak(utterance);
   }, []);
 
-  // 4. Advance Turn Function (Backend Hook)
+  // 4. Advance Turn Function (Backend Hook with Offline Simulation Fallback)
   const advanceTurn = useCallback(async (rId: string, studentText: string | null = null, interruptedId: string | null = null) => {
     if (aiTurnTimerRef.current) {
       clearTimeout(aiTurnTimerRef.current);
       aiTurnTimerRef.current = null;
+    }
+
+    const runLocalSimTurn = (inputText: string | null) => {
+      const isFirst = transcripts.length === 0;
+      let speakerName = 'Dr. Verma';
+      let uiSpeakerId = 'mod';
+      let role = 'moderator';
+      let text = '';
+      let nextActor: 'ai' | 'student' = 'ai';
+
+      if (isFirst) {
+        text = `Welcome candidates to this discussion on "${selectedTopic.title}". Please balance empirical evidence with collaborative turn-taking. The floor is now open.`;
+        nextActor = 'student';
+      } else if (inputText) {
+        const aiChoices = [
+          { id: 'aarav', name: 'Aarav', personality: 'Analyst', text: 'Adding quantitative data to what you shared: empirical research demonstrates that structured methodology and objective risk management outperform short-term emotional reactions.' },
+          { id: 'kabir', name: 'Kabir', personality: 'Critic', text: 'Bhai valid point hai, par ground reality par execute karna itna simple nahi hota. We have to account for transitional friction and practical bottlenecks.' },
+          { id: 'meera', name: 'Meera', personality: 'Creative', text: 'That is a compelling viewpoint. What if we explore a phased hybrid framework that protects immediate welfare while scaling long-term innovation?' },
+          { id: 'ananya', name: 'Ananya', personality: 'Collaborator', text: 'Both viewpoints can be synthesized effectively. If we combine quantitative benchmarks with real-world guardrails, we build a much more sustainable consensus.' }
+        ];
+        const pick = aiChoices[Math.floor(Math.random() * aiChoices.length)];
+        speakerName = pick.name;
+        uiSpeakerId = pick.id;
+        role = 'ai';
+        text = pick.text;
+        nextActor = 'ai';
+      } else {
+        const pool = [
+          { id: 'aarav', name: 'Aarav', personality: 'Analyst', text: 'Historical economic transitions prove that technological shifts consistently generate net positive employment when accompanied by accessible upskilling.' },
+          { id: 'kabir', name: 'Kabir', personality: 'Critic', text: 'We must not overlook the disproportionate burden on displaced workers. Institutional safety nets and clear timelines are mandatory before widespread adoption.' },
+          { id: 'meera', name: 'Meera', personality: 'Creative', text: 'Instead of framing this as an either-or dichotomy, agile policy experiments allow us to test small-scale solutions before national rollouts.' },
+          { id: 'rohan', name: 'Rohan', personality: 'Debater', text: 'Decisive execution is what matters most. Hesitation and over-analysis cost momentum, whereas fast iteration yields real clarity.' }
+        ];
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        speakerName = pick.name;
+        uiSpeakerId = pick.id;
+        role = 'ai';
+        text = pick.text;
+        nextActor = Math.random() > 0.4 ? 'student' : 'ai';
+      }
+
+      setActiveSpeakerId(uiSpeakerId);
+      setCurrentSpeechSnippet(`[${speakerName}] "${text}"`);
+
+      const newSeconds = Math.max(0, discussionMinutes * 60 - remainingSeconds);
+      const mins = Math.floor(newSeconds / 60);
+      const secs = newSeconds % 60;
+      const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+      setTranscripts((prev) => [
+        ...prev,
+        {
+          id: `t-sim-${Date.now()}`,
+          speakerId: uiSpeakerId,
+          speakerName: speakerName,
+          personality: (role === 'moderator' ? 'Moderator' : 'Analyst') as any,
+          role: role as any,
+          text: text,
+          timestamp: timeStr,
+          seconds: newSeconds,
+        }
+      ]);
+
+      speakTurn(text, { name: speakerName, pitch: 1.0, rate: 0.95 }, () => {
+        if (isInterruptedRef.current) return;
+        if (nextActor === 'ai') {
+          aiTurnTimerRef.current = setTimeout(() => {
+            advanceTurn(rId, null, null);
+          }, 1500);
+        } else {
+          setActiveSpeakerId(null);
+          setCurrentSpeechSnippet('The floor is open. Speak or type your thoughts.');
+        }
+      });
+    };
+
+    if (rId === 'room-client-sim') {
+      runLocalSimTurn(studentText);
+      return;
     }
 
     try {
@@ -289,9 +368,10 @@ export function useGDSimulator() {
         setCurrentSpeechSnippet('Floor open. Press Space or Hold Speak to contribute.');
       }
     } catch (err) {
-      console.error('Error advancing turn:', err);
+      console.warn('Backend unavailable, running local turn simulation:', err);
+      runLocalSimTurn(studentText);
     }
-  }, [discussionMinutes, remainingSeconds, speakTurn]);
+  }, [discussionMinutes, remainingSeconds, selectedTopic.title, speakTurn, transcripts.length]);
 
   // 5. Shuffle Topic
   const shuffleTopic = useCallback(() => {
@@ -385,7 +465,41 @@ export function useGDSimulator() {
       // Start initial turn
       advanceTurn(data.room_id, null, null);
     } catch (err) {
-      console.error('Failed to create room on backend:', err);
+      console.warn('Backend offline or static host mode. Using client-side simulation:', err);
+      const fakeRoomId = 'room-client-sim';
+      roomIdRef.current = fakeRoomId;
+
+      const moderatorNode: Participant = {
+        id: 'mod',
+        name: 'Dr. Verma',
+        role: 'moderator',
+        personality: 'Moderator',
+        tagline: 'Introduces topic, guides turn flow, enforces fairness, and tracks time',
+        avatarSeed: 'moderator',
+        color: '#ffc400',
+        accentGlow: 'rgba(255, 196, 0, 0.5)',
+        talkTimeSeconds: 0,
+        isSpeaking: false
+      };
+
+      const userNode: Participant = {
+        id: 'user',
+        name: 'You (Candidate)',
+        role: 'user',
+        personality: 'Candidate',
+        tagline: 'Defends core thesis with quantitative logic and collaborative listening',
+        avatarSeed: 'user',
+        color: '#ffc400',
+        accentGlow: 'rgba(255, 196, 0, 0.6)',
+        talkTimeSeconds: 0,
+        isSpeaking: false
+      };
+
+      const aiNodes = MOCK_PARTICIPANTS.filter((p) => p.role === 'ai').slice(0, panelSize);
+      setParticipants([moderatorNode, ...aiNodes, userNode]);
+      setTranscripts([]);
+
+      advanceTurn(fakeRoomId, null, null);
     }
   }, [advanceTurn, discussionMinutes, panelSize, selectedTopic]);
 
