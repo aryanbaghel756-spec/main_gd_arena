@@ -1,0 +1,49 @@
+{
+  "topics": [
+    {
+      "id": "ai-jobs",
+      "title": "Will AI Create More Jobs Than It Destroys?",
+      "category": "Technology & Economy",
+      "difficulty": "Medium",
+      "suggested_duration_sec": 300,
+      "context": "Debate whether rapid AI automation will cause permanent unemployment or lead to high-value job creation based on WEF and OECD data.",
+      "format": "standard"
+    },
+    {
+      "id": "case-startup-crisis",
+      "title": "Case Study: NovaTech Crisis - 30% Layoffs vs. 15% Salary Cuts",
+      "category": "Corporate Strategy & Crisis",
+      "difficulty": "Hard",
+      "suggested_duration_sec": 300,
+      "context": "A Series B startup faces a 40% revenue drop with 8 months runway. Debate employee retention vs burn reduction.",
+      "format": "case_based"
+    },
+    {
+      "id": "abstract-silence",
+      "title": "Abstract: Silence is More Eloquent Than Words",
+      "category": "Philosophy & Leadership",
+      "difficulty": "Hard",
+      "suggested_duration_sec": 300,
+      "context": "Interpret the strategic, diplomatic, and interpersonal dimensions of silence versus verbal articulation in leadership.",
+      "format": "abstract"
+    },
+    {
+      "id": "controversial-wealth-cap",
+      "title": "Controversial: Should Maximum Personal Wealth Be Capped at $1 Billion?",
+      "category": "Public Policy & Ethics",
+      "difficulty": "Hard",
+      "suggested_duration_sec": 300,
+      "context": "Examine wealth inequality, capital mobility, investment incentives, and progressive taxation.",
+      "format": "controversial"
+    },
+    {
+      "id": "remote-work",
+      "title": "Remote Work vs. Return to Office: The Future of Collaboration",
+      "category": "Workplace & Society",
+      "difficulty": "Easy",
+      "suggested_duration_sec": 300,
+      "context": "Examine Stanford/Bloom research on productivity, mentorship deficit, and urban economic shifts.",
+      "format": "standard"
+    }
+  ]
+}
