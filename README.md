@@ -8,7 +8,9 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 
 > **Built for Campus Placements & Interview Prep (Problem Statement 2)**  
-> GD Arena is a voice-first AI Group Discussion practice platform where students discuss real-world topics with **5 distinct AI personas** and an **AI Moderator** in real time, followed by an **evidence-based performance evaluation report** with personalized improvement roadmaps.
+> GD Arena is a voice-first AI Group Discussion practice platform where students discuss real-world topics with **5 distinct AI personas** and an **AI Moderator** in real time, followed by an **evidence-based performance evaluation report** with personalized improvement roadmaps.  
+>  
+> 📑 **For Hackathon Judges**: Read our concise 3-minute executive summary & architecture overview in **[JUDGES_REPORT.md](JUDGES_REPORT.md)**.
 
 ---
 
